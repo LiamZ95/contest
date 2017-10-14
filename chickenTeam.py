@@ -175,12 +175,12 @@ class DPSAgent(ReflexCaptureAgent):
         successor = self.getSuccessor(gameState, action)
         myPos = successor.getAgentState(self.index).getPosition()
         enemies = [successor.getAgentState(i) for i in self.getOpponents(successor)]
-        inRange = filter(lambda x: not x.isPacman and x.getPosition() != None, enemies)
-        if len(inRange) > 0:
-            positions = [agent.getPosition() for agent in inRange]
+        ghostsInRange = filter(lambda x: not x.isPacman and x.getPosition() != None, enemies)
+        if len(ghostsInRange) > 0:
+            positions = [agent.getPosition() for agent in ghostsInRange]
             closestPos = min(positions, key=lambda x: self.getMazeDistance(myPos, x))
             closestDist = self.getMazeDistance(myPos, closestPos)
-            closest_enemies = filter(lambda x: x[0] == closestPos, zip(positions, inRange))
+            closest_enemies = filter(lambda x: x[0] == closestPos, zip(positions, ghostsInRange))
             for agent in closest_enemies:
                 if agent[1].scaredTimer > 0:
                     return {'successorScore': 200, 'distanceToFood': -5, 'distanceToGhost': 0, 'isPacman': 0}
@@ -207,34 +207,29 @@ class DPSAgent(ReflexCaptureAgent):
                 actions.remove(reversed_direction)
 
             # Randomly chooses a valid action
-            print 'action: '
-            print actions
             a = random.choice(actions)
-            print 'a: '
-            print a
 
             # Compute new state and update depth
-            print 'before'
             new_state = self.getSuccessor(new_state, a)
-            print 'after'
             depth -= 1
 
         # Evaluate the final simulation state
         return self.evaluate(new_state, Directions.STOP)
 
-    def isDeadend(self, gameState, action, depth):
+    # To to improved
+    def isEmptyDeadend(self, gameState, action, depth):
 
         if depth == 0:
             return False
-        old_score = self.getScore(gameState)
-        new_state = self.getSuccessor(gameState,action)
-        new_score = self.getScore(new_state)  # Score of successor
-        if old_score < new_score:
+        prevScore = self.getScore(gameState)
+        successor = self.getSuccessor(gameState,action)
+        newScore = self.getScore(successor)  # Score of successor
+        if prevScore < newScore:
             return False
         # Actions available on successor, and remove unwanted actions
-        actions = new_state.getLegalActions(self.index)
+        actions = successor.getLegalActions(self.index)
         actions.remove(Directions.STOP)
-        reversed_direction = Directions.REVERSE[new_state.getAgentState(self.index).configuration.direction]
+        reversed_direction = Directions.REVERSE[successor.getAgentState(self.index).configuration.direction]
         if reversed_direction in actions:
             actions.remove(reversed_direction)
 
@@ -243,29 +238,66 @@ class DPSAgent(ReflexCaptureAgent):
             return True
         # Recursive test deadend on successor
         for a in actions:
-            if not self.isDeadend(new_state, a, depth - 1):
+            if not self.isEmptyDeadend(successor, a, depth - 1):
                 return False
         return True
 
     def chooseAction(self, gameState):
-        # start = time.time()
+
+        foodList = self.getFood(gameState).asList()
+        myPos = gameState.getAgentState(self.index).getPosition()
+        minDis = 999
+        wantedFoodInfo = []
+        for food in foodList:
+            if self.getMazeDistance(myPos, food) < minDis:
+                minDis = self.getMazeDistance(myPos, food)
+                wantedFoodInfo = []
+                wantedFoodInfo.append((food, minDis))
+            elif self.getMazeDistance(myPos, food) == minDis:
+                minDis = self.getMazeDistance(myPos, food)
+                wantedFoodInfo.append((food, minDis))
+
+        selectedInfo = random.choice(wantedFoodInfo)
+
+        foodPos = selectedInfo[0]
+        print 'Foodpos', foodPos
+        minDistance = selectedInfo[1]
+        availableActions = gameState.getLegalActions(self.index)
+
+        sucList = []
+        for a in availableActions:
+            suc = self.getSuccessor(gameState, a)
+            sucList.append((suc, a))
+        enemies = [gameState.getAgentState(i) for i in self.getOpponents(gameState)]
+        knowGhost = filter(lambda x: not x.isPacman and x.getPosition() != None, enemies)
+
+        if len(knowGhost) == 0 and minDistance <= 2:
+            for tuple2 in sucList:
+                suc = tuple2[0]
+                sucPos = suc.getAgentState(self.index).getPosition()
+                sucToFood = self.getMazeDistance(sucPos, foodPos)
+                if sucToFood < minDistance:
+                    if tuple2[1] not in availableActions:
+                        print '*************************'
+                    return tuple2[1]
+
+
         foodNum = len(self.getFood(gameState).asList())
         if self.availableFoodNum != foodNum:
             self.availableFoodNum = foodNum
             self.idleTime = 0
-
         else:
             self.idleTime += 1
 
         if gameState.getInitialAgentPosition(self.index) == gameState.getAgentState(self.index).getPosition():
             self.idleTime = 0
 
-        availableActions = gameState.getLegalActions(self.index)
+
         availableActions.remove(Directions.STOP)
         actions = []
 
         for a in actions:
-            if not self.isDeadend(gameState, a, 5):
+            if not self.isEmptyDeadend(gameState, a, 5):
                 actions.append(a)
 
         if len(actions) == 0:

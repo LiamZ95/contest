@@ -65,10 +65,10 @@ class ReflexCaptureAgent(CaptureAgent):
         """
         Picks among the actions with the highest Q(s,a).
         """
-        print
-        "************************Start*****************************************"
-        print
-        "Agent Index:", self.index
+        # print
+        # "************************Start*****************************************"
+        # print
+        # "Agent Index:", self.index
         actions = gameState.getLegalActions(self.index)
         # You can profile your evaluation time by uncommenting these lines
         # start = time.time()
@@ -128,14 +128,14 @@ class ReflexCaptureAgent(CaptureAgent):
         """
         features = self.getFeatures(gameState, action)
         weights = self.getWeights(gameState, action)
-        print
-        "current action: ", action
-        print
-        "features: ", features
-        print
-        "weights: ", weights
-        print 
-        "feature * weights: ", features * weights
+        # print
+        # "current action: ", action
+        # print
+        # "features: ", features
+        # print
+        # "weights: ", weights
+        # print
+        # "feature * weights: ", features * weights
         return features * weights
 
     def getFeatures(self, gameState, action):
@@ -171,7 +171,7 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
     def getFeatures(self, gameState, action):
         features = util.Counter()
         successor = self.getSuccessor(gameState, action)
-        print successor
+        # print successor
         foodList = self.getFood(successor).asList()
         features['successorScore'] = -len(foodList)  # self.getScore(successor)
         myPos = successor.getAgentState(self.index).getPosition()
@@ -199,8 +199,8 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
             myPos = successor.getAgentState(self.index).getPosition()
             disToPac = min([self.getMazeDistance(myPos, pac) for pac in invaderPos])
             if disToPac <= 1:
-                print
-                "catch ghost!"
+                # print
+                # "catch ghost!"
                 features['distanceToInv'] = disToPac
 
         # handle both ghosts are at the boarder and inifinte looping with each other
@@ -219,13 +219,13 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
                 if minDis == dists[i]:
                     index = i
             if enemies[index].scaredTimer != 0:
-                print
-                "scared!"
+                # print
+                # "scared!"
                 features['ghostDistance'] = 0
             else:
                 # returns noise distance to each agents in current state.
-                print
-                successor.getAgentDistances()
+                # print
+                # successor.getAgentDistances()
                 # makeObservation
                 # print help(successor.getDistanceProb), exit()
                 # if ghosts around five step, do not try to look for food any more
@@ -293,9 +293,9 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
         features['numInvaders'] = len(invaders)
         if len(invaders) > 0:
             dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
-            for a in invaders:
-                print
-                "Ghost position", a.getPosition(), "MyPosition: ", myPos
+            # for a in invaders:
+            #     print
+            #     "Ghost position", a.getPosition(), "MyPosition: ", myPos
             features['invaderDistance'] = min(dists)
 
         if action == Directions.STOP: features['stop'] = 1
