@@ -78,6 +78,7 @@ class ReflexCaptureAgent(CaptureAgent):
 
     foodLeft = len(self.getFood(gameState).asList())
 
+    # find the nearest food
     if foodLeft <= 2:
       bestDist = 9999
       for action in actions:
@@ -91,6 +92,7 @@ class ReflexCaptureAgent(CaptureAgent):
 
     return random.choice(bestActions)
 
+  # find a successor that is the nearest point
   def getSuccessor(self, gameState, action):
     """
     Finds the next successor which is a grid position (location tuple).
@@ -173,6 +175,8 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
     enemies = [successor.getAgentState(i) for i in self.getOpponents(successor)]
     invaders = [a for a in enemies if a.isPacman and a.getPosition() != None]
     features['numInvaders'] = len(invaders)
+
+    # find the nearest invader
     if len(invaders) > 0:
       dists = [self.getMazeDistance(myPos, a.getPosition()) for a in invaders]
       features['invaderDistance'] = min(dists)
