@@ -67,8 +67,8 @@ class AStarFoodSearchAgent(CaptureAgent):
         self.distanceToHome = 0
 
     def chooseAction(self, gameState):
-        #raw_input()
-        #print "****************"
+        # raw_input()
+        print "****************"
         """
         Picks among the actions with the highest Q(s,a).
         """
@@ -83,7 +83,7 @@ class AStarFoodSearchAgent(CaptureAgent):
         actions = []
         if self.getMyPos(gameState) in self.getCapsules( self.strtGameState):
             self.powerTimer = 40
-            #print "laoziniubile"
+            print "laoziniubile"
 
         #print "gengxinle"
         self.strtGameState = gameState
@@ -98,24 +98,24 @@ class AStarFoodSearchAgent(CaptureAgent):
                 actions += [a]
         self.distanceToHome = self.disToHome(gameState)
         if self.powerTimer > self.distanceToHome + 5:
-            #print "powered left " + str(self.powerTimer)
+            print "powered left " + str(self.powerTimer)
             values = [(self.evaluate(gameState, a)) for a in actions]
-            #print "all action value " + str(values)
+            print "all action value " + str(values)
             minValue = min(values)
             bestActions = [a for a, v in zip(actions, values) if v == minValue and a != 'Stop']
-            #print "best action " + str(bestActions)
+            print "best action " + str(bestActions)
 
             # print bestActions
             return random.choice(bestActions)
 
         if self.powerTimer > 0:
-            #print "gohomewith power"
-            #print "powered left " + str(self.powerTimer)
+            print "gohomewith power"
+            print "powered left " + str(self.powerTimer)
             values = [(self.gohomeHeuristic(gameState, a)) for a in actions]
-            #print "all action value " + str(values)
+            print "all action value " + str(values)
             minValue = min(values)
             bestActions = [a for a, v in zip(actions, values) if v == minValue and a != 'Stop']
-            #print "best action " + str(bestActions)
+            print "best action " + str(bestActions)
 
             # print bestActions
             return random.choice(bestActions)
@@ -129,31 +129,31 @@ class AStarFoodSearchAgent(CaptureAgent):
             foodlimit = 1
 
         if foodLeft <= 2 or (gameState.getAgentState(self.index).numCarrying > foodlimit) or (gameState.getAgentState(self.index).numCarrying > 0 and self.enemyDist(gameState) < 3):
-            #print "gohome"
-            #print "all legal action " + str(actions)
+            print "gohome"
+            print "all legal action " + str(actions)
             #values = [(self.gohomeHeuristic(gameState,a) + self.enemyHeuristic(gameState,a) )for a in actions]
             values = [(self.gohomeHeuristic(gameState,a) - self.getActionPayoff(gameState,a) )for a in actions]
-            #print "all action value " + str(values)
+            print "all action value " + str(values)
             minValue = min(values)
             bestActions = [a for a, v in zip(actions, values) if v == minValue and a != 'Stop']
-            #print "best action " + str(bestActions)
+            print "best action " + str(bestActions)
             return random.choice(bestActions)
 
 
 
 
-       # print "all legal action " + str(actions)
+        print "all legal action " + str(actions)
         # You can profile your evaluation time by uncommenting these lines
         # start = tixme.time()
         x = gameState.getWalls().width / 2
         #values = [(self.evaluate(gameState, a) + self.enemyHeuristic(gameState,a)) for a in actions]
         values = [(self.evaluate(gameState, a)- self.getActionPayoff(gameState,a)) for a in actions]
-       # print "all action value " + str(values)
+        print "all action value " + str(values)
         # print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
 
         minValue = min(values)
         bestActions = [a for a, v in zip(actions, values) if v == minValue and a != 'Stop']
-       # print "best action " + str(bestActions)
+        print "best action " + str(bestActions)
 
 
         #print bestActions
@@ -249,8 +249,8 @@ class AStarFoodSearchAgent(CaptureAgent):
             if not gameState.hasWall(x, y) and (x, y) not in self.getEnemyPoslist(gameState):
                 locations.append((x, y))
             y = y + 1
-        #print 'VVVVVV'
-       # print self.distanceToHome
+        print 'VVVVVV'
+        print self.distanceToHome
 
         locations += self.getCapsules(gameState)
         myPos = gameState.getAgentState(self.index).getPosition()
@@ -281,8 +281,8 @@ class AStarFoodSearchAgent(CaptureAgent):
             if not gameState.hasWall(x, y) and (x,y) not in self.getEnemyPoslist(gameState) :
                 locations.append((x, y))
             y = y + 1
-        #print 'VVVVVV'
-        #print self.distanceToHome
+        print 'VVVVVV'
+        print self.distanceToHome
         if self.powerTimer <=  self.distanceToHome + 5:
             locations += self.getCapsules(preGameState)
 
@@ -303,9 +303,9 @@ class AStarFoodSearchAgent(CaptureAgent):
                 return minDist - 9900
             else:
                 return minDist - 999
-        #print myPos
-        #print minDist
-        #print '^^^^^^'
+        print myPos
+        print minDist
+        print '^^^^^^'
         return minDist
 
     def gohomeHeuristic(self,gameState,action):
@@ -399,12 +399,12 @@ class AStarFoodSearchAgent(CaptureAgent):
             features['possibleEaten'] = 1
         pacNextState, cost = self.getSuccessor(gameState, action)
         if len(self.getMyEnemyPos(gameState)) == 0  :
-                #print "safe1"
+                print "safe1"
                 return 1000
         if not (gameState.getAgentState(self.index).isPacman):
             if self.getMazeDistance(self.getMyPos(gameState), self.getMyPos(pacNextState)) < 3 \
                     and not (pacNextState.getAgentState(self.index).isPacman and self.enemyDist(pacNextState) < 3):
-                #print "safe2"
+                print "safe2"
                 return 1000
             else:
                 return -20
@@ -504,9 +504,9 @@ class AStarFoodSearchAgent(CaptureAgent):
             if features['minDist']==9999:
                 return 1000
 
-        #print features['isPath']
-        #print features['possibleEaten']
-        #print features['minDist']
+        print features['isPath']
+        print features['possibleEaten']
+        print features['minDist']
         payoff = features['isPath'] * 100 + features['possibleEaten'] * (-10000) + features['minDist'] * 3
         #print str(payoff)+"=/n"+"Path:"+str(features['isPath'] * 100)+"\n"+"Eaten:"+str(features['possibleEaten'] * (-10))+"\n"+"Dist:"+str(features['minDist'] * 3) +"\n"
         return payoff
@@ -518,16 +518,14 @@ class AStarFoodSearchAgent(CaptureAgent):
 
         successor = gameState.generateSuccessor(self.index, action)
 
-        if (self.getMyPos(successor) in self.getFood(gameState).asList()) and len(gameState.getLegalActions(self.index)) > 3 and self.enemyDist(gameState) > 2:
-            #print "chidaole "
+        if (self.getMyPos(successor) in self.getFood(gameState).asList()) and len(gameState.getLegalActions(self.index)) > 3 :
+            print "chidaole "
             return -1000
         return self.foodHeuristic(successor,gameState)
 
     def getMyPos(self, gameState):
         return gameState.getAgentState(self.index).getPosition()
 
-
-# Only TANK inherits ReflexAgent
 class ReflexCaptureAgent(CaptureAgent):
     """
     A base class for reflex agents that chooses score-maximizing actions
@@ -636,11 +634,9 @@ class TANKAgent(ReflexCaptureAgent):
         self.prey = None  # position now going to (x, y)
         self.field = {}  # record the probability of going to these locations
 
-
     def registerInitialState(self, gameState):
         ReflexCaptureAgent.registerInitialState(self, gameState)
         self.distancer.getMazeDistances()
-
         # calculate the center of width
         if self.red:
             centerW = (gameState.data.layout.width - 2)/2
@@ -699,7 +695,6 @@ class TANKAgent(ReflexCaptureAgent):
         :param gameState:
         :return:
         """
-        self.strtGameState = gameState
         currentFood= self.getFoodYouAreDefending(gameState).asList()
 
         # If you find your food is eaten, then go to the food location
@@ -781,8 +776,3 @@ class TANKAgent(ReflexCaptureAgent):
         #print 'TANKAgent'
         #print resAction
         return resAction
-
-
-
-
-
