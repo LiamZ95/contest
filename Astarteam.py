@@ -21,9 +21,6 @@ import util
 # John DeNero (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # For more info, see http://inst.eecs.berkeley.edu/~cs188/sp09/pacman.html
 
-# myTeam.py
-# ---------------
-#
 from captureAgents import CaptureAgent
 import distanceCalculator
 import random, time, util, sys
@@ -70,7 +67,7 @@ class AStarFoodSearchAgent(CaptureAgent):
         self.distanceToHome = 0
 
     def chooseAction(self, gameState):
-        raw_input()
+        #raw_input()
         #print "****************"
         """
         Picks among the actions with the highest Q(s,a).
@@ -398,24 +395,19 @@ class AStarFoodSearchAgent(CaptureAgent):
         features['possibleEaten'] = 0
         features['minDist'] = 9999
         features['isPath'] = -1
-        #if self.enemyDist(gameState) < 2:
-            #features['possibleEaten'] = 1
+        if self.enemyDist(gameState) < 2:
+            features['possibleEaten'] = 1
         pacNextState, cost = self.getSuccessor(gameState, action)
-        if len(self.getMyEnemyPos(gameState)) == 0  :# ghost is far enough
-                print "safe1"
+        if len(self.getMyEnemyPos(gameState)) == 0  :
+                #print "safe1"
                 return 1000
-        if not (gameState.getAgentState(self.index).isPacman): #current is ghost
-            if self.getMazeDistance(self.getMyPos(gameState),self.getMyPos(pacNextState)) >= 3: # Next state: be eaten and reborn
-                print "danger"
-                return -10000
-            else: #Next state not be eaten
-                if not (pacNextState.getAgentState(self.index).isPacman): #next is still ghost
-                    print"safe3"
-                    return 1000
-                else:# current is a ghost , next will be a pacman
-                    if self.enemyDist(pacNextState) < 2 :
-                        print "Definatly Eaten"
-                        return -20
+        if not (gameState.getAgentState(self.index).isPacman):
+            if self.getMazeDistance(self.getMyPos(gameState), self.getMyPos(pacNextState)) < 3 \
+                    and not (pacNextState.getAgentState(self.index).isPacman and self.enemyDist(pacNextState) < 3):
+                #print "safe2"
+                return 1000
+            else:
+                return -20
 
 
         if self.red:
@@ -473,24 +465,9 @@ class AStarFoodSearchAgent(CaptureAgent):
 
                     """
                     find path - not going back
-                   """
-            """
-            visited = []
-            if len(enemies) == 1:
-                visited = [a for a in ghostNextPos if
-                           self.getMazeDistance(pacNextPos[0], a) == self.getMazeDistance(currentPos, enemies[0][1])]
-            else:
-                temp1 = [a for a in ghostNextPos if
-                         self.getMazeDistance(pacNextPos[0], a) == self.getMazeDistance(currentPos, enemies[0][1])]
-                temp2 = [a for a in ghostNextPos if
-                         self.getMazeDistance(pacNextPos[0], a) == self.getMazeDistance(currentPos, enemies[1][1])]
-                visited += temp1 + temp2
+                    """
+            visited = ghostNextPos
             visited.append(currentPos)
-            """
-            visited=ghostNextPos
-            visited.append(currentPos)
-
-
             #print "pacmanCurrentPOS:" +str(currentPos)
             #print "pacmanNextPOS:" +str(pacNextPos)
             #print "ghost(C+N)POS:"+str(ghostNextPos)
@@ -549,6 +526,8 @@ class AStarFoodSearchAgent(CaptureAgent):
     def getMyPos(self, gameState):
         return gameState.getAgentState(self.index).getPosition()
 
+
+# Only TANK inherits ReflexAgent
 class ReflexCaptureAgent(CaptureAgent):
     """
     A base class for reflex agents that chooses score-maximizing actions
@@ -661,11 +640,7 @@ class TANKAgent(ReflexCaptureAgent):
     def registerInitialState(self, gameState):
         ReflexCaptureAgent.registerInitialState(self, gameState)
         self.distancer.getMazeDistances()
-        self.start = gameState.getAgentPosition(self.index)
-        CaptureAgent.registerInitialState(self, gameState)
-        self.strtGameState = gameState
-        self.powerTimer = 0
-        self.distanceToHome = 0
+
         # calculate the center of width
         if self.red:
             centerW = (gameState.data.layout.width - 2)/2

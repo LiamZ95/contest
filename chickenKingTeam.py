@@ -10,7 +10,7 @@
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
-
+import operator
 
 from captureAgents import CaptureAgent
 import random, time, util
@@ -371,7 +371,7 @@ class TANKAgent(ReflexCaptureAgent):
         CaptureAgent.__init__(self, index)
         self.availablePos = []  # positions to patrol around
         self.preFood = None  # a list of food from previous state
-        self.prey = None  # position now going to
+        self.prey = None  # position now going to (x, y)
         self.field = {}  # record the probability of going to these locations
 
     def registerInitialState(self, gameState):
@@ -387,15 +387,17 @@ class TANKAgent(ReflexCaptureAgent):
             if not gameState.hasWall(centerW, i):
                 self.availablePos.append((centerW, i))
 
+        # is available pos is too large, then make it less
         while len(self.availablePos) > (gameState.data.layout.height -2)/2:
             self.availablePos.pop(0)
             self.availablePos.pop(-1)
+
         self.hunt(gameState)
 
     def hunt(self, gameState):
         """
         This method calculate the distance between TANK and the foods it is defending,
-        it will then be used to calculate target
+        it will then be used to calculate probability
         :param gameState:
         :return:
         """
@@ -423,8 +425,16 @@ class TANKAgent(ReflexCaptureAgent):
         x = random.choice(keylist)
         return x
 
-    def chooseAction(self, gameState):
+    # Return the time remaining scared
+    def getScaredTimer(self, gameState):
+        return gameState.getAgentState(self.index).scaredTimer
 
+    def chooseAction(self, gameState):
+        """
+        This function act by using self.prey, which is a coordinate that TANK is chasing
+        :param gameState:
+        :return:
+        """
         currentFood= self.getFoodYouAreDefending(gameState).asList()
 
         # If you find your food is eaten, then go to the food location
@@ -441,15 +451,16 @@ class TANKAgent(ReflexCaptureAgent):
 
         if len(invaders) != 0:
             # Go to closest know invader
-            positions = [agent.getPosition() for agent in invaders]
+            positions = [inv.getPosition() for inv in invaders]
             self.prey = min(positions, key = lambda x: self.getMazeDistance(myPos, x))
         elif self.preFood != None:
+
             # Go to the place where food was eaten if someone ate them
             foodEaten = []
             for food in self.preFood:
                 if food not in currentFood:
                     foodEaten.append(food)
-
+            # Some food is eaten
             if len(foodEaten) != 0:
                 # index means the latest location of food eaten
                 self.prey = foodEaten.pop(0)
@@ -464,24 +475,47 @@ class TANKAgent(ReflexCaptureAgent):
         elif self.prey is None:
             self.prey = self.selectPrey()
 
-        # Choose actions that makes agent close to target
+        # Check if our TANKAgent is scared
         availableActions = gameState.getLegalActions(self.index)
-        print availableActions
+
+        if self.getScaredTimer(gameState) > 1:
+            sucInfo = []  # A list keeping act info and its related suc distance to prey
+            shortestDist = 999
+            for act in availableActions:
+                suc = self.getSuccessor(gameState, act)
+                disToPrey = self.getMazeDistance(suc.getAgentPosition(self.index), self.prey)
+                if disToPrey >= 2:
+                    if disToPrey < shortestDist:
+                        shortestDist = disToPrey
+                        sucInfo = []
+                        sucInfo.append((act, disToPrey))
+                    elif disToPrey == shortestDist:
+                        sucInfo.append((act, disToPrey))
+            # shortestDis = sucInfo.sort(key = operator.itemgetter(1))[0][1]
+            # acts = filter(lambda x: x[1] == shortestDist, sucInfo)
+            resTuple = random.choice(sucInfo)
+            resAction = resTuple[0]
+            print 'neart to powered pacman, take the action: ', resAction
+            return resAction
+
+        # Choose actions that makes agent close to target
         legit = []
         values = []
+        availableActions.remove(Directions.STOP)
         for act in availableActions:
             suc = self.getSuccessor(gameState, act)
-            if not suc.getAgentState(self.index).isPacman and not act == Directions.STOP:
+
+            if not suc.getAgentState(self.index).isPacman:
                 sucLoc = suc.getAgentPosition(self.index)
                 legit.append(act)
                 values.append(self.getMazeDistance(sucLoc, self.prey))
         best = min(values)
         ties = filter(lambda x: x[0] == best, zip(values, legit))
-        res = random.choice(ties)[1]
+        resAction = random.choice(ties)[1]
 
         print 'TANKAgent'
-        print res
-        return res
+        print resAction
+        return resAction
 
 
 
